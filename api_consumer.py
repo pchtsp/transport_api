@@ -1,6 +1,7 @@
 import json
 import requests
 import os
+import datetime
 
 
 class API(object):
@@ -61,3 +62,10 @@ class API(object):
             print('writing cache.')
             self.set_cache(service_name, json_data, ext=ext)
         return json_data
+
+    def get_timestamp(self, format="%Y-%m-%dT%H"):
+        """
+        Useful for naming downloaded files
+        :return:
+        """
+        return datetime.datetime.utcnow().strftime(format)

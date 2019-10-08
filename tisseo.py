@@ -13,11 +13,11 @@ class Tisseo(api.API):
     def __init__(self):
         super().__init__(key=dict(key=k.tisseo['key']), cache_dir='data_tisseo', api="https://api.tisseo.fr/v1/")
 
-    def get_stop_areas(self):
-        return self.get_service_cache('stop_areas.json')
+    def get_stop_areas(self, cache=True):
+        return self.get_service_cache('stop_areas.json', cache=cache)
 
-    def get_lines(self):
-        return self.get_service_cache('lines.json')
+    def get_lines(self, cache=True):
+        return self.get_service_cache('lines.json', cache=cache)
 
     def get_schedules(self, stopAreaId, cache=False, **kwargs):
         # This one is different because the backup is per stopAreaId instead of all in the same file

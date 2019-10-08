@@ -1,3 +1,8 @@
+# project specific
+.idea
+data*/
+keyring.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

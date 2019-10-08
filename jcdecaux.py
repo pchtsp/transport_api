@@ -2,6 +2,8 @@
 # "GET https://api.jcdecaux.com/vls/v1/stations?contract={contract_name}&apiKey={api_key}"
 
 import api_consumer as api
+import pytups as pt
+import os
 try:
     import keyring as k
 except ImportError:
@@ -10,17 +12,39 @@ except ImportError:
 
 class JCDecaux(api.API):
 
-    def __init__(self):
-        super().__init__(key=dict(apiKey=k.jcdecaux['key']), cache_dir='data_velo', api="https://api.jcdecaux.com/vls/")
+    def __init__(self, cache_dir='data_velo'):
+        self.all_stations = 'v3/stations'
+        super().__init__(key=dict(apiKey=k.jcdecaux['key']),
+                         cache_dir=cache_dir,
+                         api="https://api.jcdecaux.com/vls/")
 
-    def get_stations(self):
-        return self.get_service_cache('v3/stations', ext='.json')
+    def get_stations(self, cache=True):
+        return self.get_service_cache(self.all_stations, ext='.json', cache=cache)
 
-def get_key():
-  return k.jcdecaux['key']
+    @staticmethod
+    def get_static(station):
+        static = ['number', 'contractName', 'name', 'address', 'position', 'banking', 'bonus', 'overflow', 'shape']
+        return pt.SuperDict.from_dict(station).filter(static)
 
-def get_url(service_name):
-    return "https://api.jcdecaux.com/vls/v1/" + service_name
+    @staticmethod
+    def get_dynamic(station):
+        dynamic = ['status', 'connected', 'totalStands', 'mainStands', 'overflowStands', 'lastUpdate']
+        return pt.SuperDict.from_dict(station).filter(dynamic)
+
+    def download_backup_dynamic(self):
+        stations = self.get_stations(cache=False)
+        dynamic = pt.TupList(stations).apply(self.get_dynamic)
+        ts = self.get_timestamp()
+        self.set_cache(self.all_stations + '/dynamic/' + ts, dynamic, ext='.json')
+
+    def download_backup_static(self):
+        stations = self.get_stations(cache=False)
+        static = pt.TupList(stations).apply(self.get_static)
+        ts = self.get_timestamp()
+        self.set_cache(self.all_stations + '/static/' + ts, static, ext='.json')
+
+    def get_contrats(self, cache=True):
+        return self.get_service_cache('v3/contracts', ext='.json', cache=cache)
 
 Contrat = \
 {
@@ -33,6 +57,9 @@ Contrat = \
     ...
   ]
 }
+
+# contrats
+# https://api.jcdecaux.com/vls/v3/contract
 
 # stations
 # https://api.jcdecaux.com/vls/v3/station
@@ -50,5 +77,6 @@ Contrat = \
 # https://api.jcdecaux.com/parking/v1/contracts/{contract_name}/parks/{park_number}
 
 if __name__ == '__main__':
+
     self = JCDecaux()
-    stations = self.get_stations()
+    contrats = self.get_contrats()
