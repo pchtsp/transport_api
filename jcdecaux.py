@@ -28,7 +28,7 @@ class JCDecaux(api.API):
 
     @staticmethod
     def get_dynamic(station):
-        dynamic = ['status', 'connected', 'totalStands', 'mainStands', 'overflowStands', 'lastUpdate']
+        dynamic = ['number', 'contractName', 'name', 'status', 'connected', 'totalStands', 'mainStands', 'overflowStands', 'lastUpdate']
         return pt.SuperDict.from_dict(station).filter(dynamic)
 
     def download_backup_dynamic(self):
