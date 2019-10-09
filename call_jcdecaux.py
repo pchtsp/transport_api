@@ -5,15 +5,17 @@ import jcdecaux as jc
 def cli():
     pass
 
+@click.option('--path', default='', help='Absolute path to directory.')
 @cli.command()
-def dynamic():
-    self = jc.JCDecaux()
+def dynamic(path):
+    self = jc.JCDecaux(path)
     self.download_backup_dynamic()
     click.echo('Dynamic download succesfully')
 
+@click.option('--path', default='', help='Absolute path to directory.')
 @cli.command()
-def static():
-    self = jc.JCDecaux()
+def static(path):
+    self = jc.JCDecaux(path)
     self.download_backup_static()
     click.echo('Static download succesfully')
 
