@@ -2,6 +2,7 @@ import json
 import requests
 import os
 import datetime
+import urllib.parse
 
 
 class API(object):
@@ -21,7 +22,7 @@ class API(object):
         return self.key
 
     def get_url(self, service_name):
-        return self.api + service_name
+        return urllib.parse.urljoin(self.api, service_name)
 
     def get_cache(self, file_name, directory=None, ext=None):
         if directory is None:
@@ -55,7 +56,9 @@ class API(object):
         print('did not find the file.')
         url = self.get_url(service_name)
         key = self.get_key()
-        payload = dict(**key, **kwargs)
+        payload = kwargs
+        if key is not None:
+            payload.update(key)
         result = requests.get(url, params=payload)
         json_data = result.json()
         if cache:

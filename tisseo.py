@@ -19,39 +19,33 @@ class Tisseo(api.API):
     def get_lines(self, cache=True):
         return self.get_service_cache('lines.json', cache=cache)
 
-    def get_schedules(self, stopAreaId, cache=False, **kwargs):
+    def get_schedules(self, stopAreaId, cache=0, **kwargs):
         # This one is different because the backup is per stopAreaId instead of all in the same file
-
+        # if cache==1 => read and write.
+        # if cache==2 => only read
+        # if cache==3 => only write
         service_name = 'stops_schedules.json'
         base, ext = os.path.splitext(service_name)
-        directory = self.cache_dir + base + '/'
+        directory = os.path.join(self.cache_dir, base)
         filename = stopAreaId + ext
-        if cache:
+        if cache in [1, 2]:
             cache_data = self.get_cache(filename, directory=directory)
             if cache_data is not None:
                 return cache_data
         json_data = self.get_service_cache(service_name, cache=False, stopAreaId=stopAreaId, **kwargs)
-        if cache:
+        if cache in [1, 3]:
             self.set_cache(filename, json_data, directory=directory)
         return json_data
 
+    def get_all_schedules(self):
+        stop_areas = self.get_stop_areas()
+        stop_area_codes = [c['id'] for c in stop_areas['stopAreas']['stopArea']]
+        args = dict(number=100000, displayRealTime=0, maxDays=7, datetime='2019-10-14 05:00')
+        stop_area_codes_f = stop_area_codes
+        for stopArea in stop_area_codes_f:
+            schedule = self.get_schedules(stopAreaId=stopArea, cache=1, **args)
+
 
 if __name__ == '__main__':
-    import pprint
     self = Tisseo()
-    stop_areas = self.get_stop_areas()
-    lines = self.get_lines()
-    # lines['lines']['line'][10]['id']
-    stop_area_codes = [c['id'] for c in stop_areas['stopAreas']['stopArea']]
-    # r = get_schedules(lineId='11821953316814891', cache=False)
-    args = dict(number=10000, displayRealTime=0, maxDays=2)
-    stop_area_codes_f = stop_area_codes[99:200]
-    for stopArea in stop_area_codes_f:
-        schedule = self.get_schedules(stopAreaId=stopArea, cache=True, **args)
-    # schedule = get_schedules(stopAreaId='1970324837185612', cache=True, **args)
-    # 'datetime' date and time at which we request the schedules
-    # pprint.pprint(schedule['departures']['departure'])
-    len(schedule['departures']['departure'])
-    # print(r)
-
-
+    self.get_all_schedules()
