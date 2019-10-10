@@ -1,6 +1,7 @@
 import api_consumer as api
 import pytups as pt
 import os
+import click
 
 
 class CityBikes(api.API):
@@ -30,6 +31,20 @@ class CityBikes(api.API):
             content = f.readlines()
         return pt.TupList(content).apply(str.strip)
 
+
+
+@click.group()
+def cli():
+    pass
+
+
+@click.option('--path', default='', help='Absolute path to directory.')
+@cli.command()
+def dynamic(path):
+    self = CityBikes(path)
+    self.download_backup_dynamic()
+    click.echo('Dynamic download succesfully')
+
+
 if __name__ == '__main__':
-    self = CityBikes()
-    # self.download_backup_dynamic()
+    cli()
