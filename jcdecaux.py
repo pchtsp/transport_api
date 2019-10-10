@@ -3,7 +3,7 @@
 
 import api_consumer as api
 import pytups as pt
-import os
+import click
 try:
     import keyring as k
 except ImportError:
@@ -46,37 +46,27 @@ class JCDecaux(api.API):
     def get_contrats(self, cache=True):
         return self.get_service_cache('v3/contracts', ext='.json', cache=cache)
 
-Contrat = \
-{
-  "name" : "Lyon",
-  "commercial_name" : "Vélo'v",
-  "country_code" : "FR",
-  "cities" : [
-    "Lyon",
-    "Villeurbanne",
-    ...
-  ]
-}
 
-# contrats
-# https://api.jcdecaux.com/vls/v3/contract
+@click.group()
+def cli():
+    pass
 
-# stations
-# https://api.jcdecaux.com/vls/v3/station
 
-# 1 station
-# https://api.jcdecaux.com/vls/v3/stations/{station_number}?contract={contract_name}
+@click.option('--path', default='', help='Absolute path to directory.')
+@cli.command()
+def dynamic(path):
+    self = JCDecaux(path)
+    self.download_backup_dynamic()
+    click.echo('Dynamic download succesfully')
 
-# station par contrat
-# https://api.jcdecaux.com/vls/v3/stations?contract={contract_name}
 
-# parkings par contrat
-# https://api.jcdecaux.com/parking/v1/contracts/{contract_name}/parks
+@click.option('--path', default='', help='Absolute path to directory.')
+@cli.command()
+def static(path):
+    self = JCDecaux(path)
+    self.download_backup_static()
+    click.echo('Static download succesfully')
 
-# 1 parking
-# https://api.jcdecaux.com/parking/v1/contracts/{contract_name}/parks/{park_number}
 
 if __name__ == '__main__':
-
-    self = JCDecaux()
-    contrats = self.get_contrats()
+    cli()
