@@ -34,13 +34,13 @@ class JCDecaux(api.API):
     def download_backup_dynamic(self):
         stations = self.get_stations(cache=False)
         dynamic = pt.TupList(stations).apply(self.get_dynamic)
-        ts = self.get_timestamp()
+        ts = self.get_timestamp(format="%Y-%m-%dT%H%M%S")
         self.set_cache(self.all_stations + '/dynamic/' + ts, dynamic, ext='.json')
 
     def download_backup_static(self):
         stations = self.get_stations(cache=False)
         static = pt.TupList(stations).apply(self.get_static)
-        ts = self.get_timestamp()
+        ts = self.get_timestamp(format="%Y-%m-%dT%H%M%S")
         self.set_cache(self.all_stations + '/static/' + ts, static, ext='.json')
 
     def get_contrats(self, cache=True):
