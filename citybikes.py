@@ -22,7 +22,7 @@ class CityBikes(api.API):
             # if not found, get all...
             apis = self.get_networks()
         apis_data = apis.to_dict(None).vapply(self.get_service_cache, ext='.json', cache=False)
-        ts = self.get_timestamp()
+        ts = self.get_timestamp(format="%Y-%m-%dT%H%M%S")
         for key, data in apis_data.items():
             self.set_cache(key + '/' + ts, data, ext='.json')
 
