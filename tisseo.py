@@ -11,10 +11,13 @@ except ImportError:
 class Tisseo(api.API):
 
     def __init__(self):
-        super().__init__(key=dict(key=k.tisseo['key']), cache_dir='data_tisseo', api="https://api.tisseo.fr/v1/")
+        api.API.__init__(self, key=dict(key=k.tisseo['key']), cache_dir='data_tisseo', api="https://api.tisseo.fr/v1/")
 
-    def get_stop_areas(self, cache=True):
-        return self.get_service_cache('stop_areas.json', cache=cache)
+    def get_stop_areas(self, cache=True, **kwargs):
+        return self.get_service_cache('stop_areas.json', cache=cache, **kwargs)
+
+    def get_stop_points(self, cache=True, **kwargs):
+        return self.get_service_cache('stop_points.json', cache=cache, **kwargs)
 
     def get_lines(self, cache=True):
         return self.get_service_cache('lines.json', cache=cache)

@@ -60,6 +60,9 @@ class API(object):
         if key is not None:
             payload.update(key)
         result = requests.get(url, params=payload)
+        if result.status_code != 200:
+            print('There was an error in the request. Code: {}'.format(result.status_code))
+            return None
         json_data = result.json()
         if cache:
             print('writing cache.')

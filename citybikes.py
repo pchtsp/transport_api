@@ -16,7 +16,11 @@ class CityBikes(api.API):
         return self.get_service_cache(self.all_networks, ext='.json', cache=cache)
 
     def download_backup_dynamic(self):
-        apis = self.get_relevant_networks()
+        try:
+            apis = self.get_relevant_networks()
+        except:
+            # if not found, get all...
+            apis = self.get_networks()
         apis_data = apis.to_dict(None).vapply(self.get_service_cache, ext='.json', cache=False)
         ts = self.get_timestamp()
         for key, data in apis_data.items():
