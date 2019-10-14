@@ -198,17 +198,21 @@ def get_lats_longs_from_node(directory, trip, sequence, min_hour, max_hour):
     return get_lats_longs(arcs, info)
 
 def get_lats_longs(arcs, info):
-    lats = set()
-    longs = set()
-    get_lat = lambda v: info['stops'][v.stop]['stop_lat']
-    get_lon = lambda v: info['stops'][v.stop]['stop_lon']
+    nodes = set()
     for node, neighbors in arcs.items():
-        lats.add(get_lat(node))
-        longs.add(get_lon(node))
+        nodes.add(node)
         for node2 in neighbors:
-            lats.add(get_lat(node2))
-            longs.add(get_lon(node2))
-    return lats, longs
+            nodes.add(node2)
+    get_lat = lambda v: float(info['stops'][v.stop]['stop_lat'])
+    get_lon = lambda v: float(info['stops'][v.stop]['stop_lon'])
+    get_route = lambda v: info['routes'][v.route]['route_short_name']
+    get_time = lambda v: v.time.strftime('%H:%M')
+    get_all = lambda v: dict(lat=get_lat(v),
+                             long=get_lon(v),
+                             time=get_time(v),
+                             route=get_route(v))
+    return pt.TupList(nodes).to_dict(None).vapply(get_all).to_df(orient='index').reset_index(drop=True)
+
 
 if __name__ == '__main__':
 
