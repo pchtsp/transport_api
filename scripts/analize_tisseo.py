@@ -1,12 +1,8 @@
 import os
-import ujson as json
+import json
 import pytups as pt
-import numpy as np
 import pandas as pd
-import tisseo as ti
-import pprint
 import datetime
-
 
 def read_json(filename):
     with open(filename, 'r') as f:
@@ -51,6 +47,9 @@ class Node(object):
 
     # consists of a trip arriving at a stop at a certain time (in a seq)
     def __init__(self, trip_id, stop_sequence, info):
+        # convert this to inter has a lot to do with R and
+        # it being unable to pass integer arguments
+        stop_sequence = int(stop_sequence)
         self.seq = stop_sequence
         self.trip = trip_id
         data = info['stop_times'][trip_id][stop_sequence]
@@ -147,10 +146,13 @@ def get_info_object(tables, day_ok_week='monday', min_hour='11:00:00', max_hour=
         to_dict(orient='index')
     stop_times_info_1 = pt.SuperDict.from_dict(stop_times_info_1).to_dictdict()
 
-    # Maybe make it a dictionary indexed by the stop.
+    # TODO: Maybe make it a dictionary indexed by the stop. more efficient to filter
     stop_times_2_info = \
         stop_times_info. \
         set_index('stop_id')[['arrival_time', 'trip_id', 'route_id', 'stop_sequence']]
+
+    # we want the backup in the table. This is becuase R has problems with no-unique indeces.
+    stop_times_2_info['stop_id_backup'] = stop_times_2_info.index
 
     route_info = tables['routes'].set_index('route_id').to_dict(orient='index')
     route_info = pt.SuperDict.from_dict(route_info)
@@ -159,8 +161,8 @@ def get_info_object(tables, day_ok_week='monday', min_hour='11:00:00', max_hour=
     stops_info = pt.SuperDict.from_dict(stops_info)
 
     return pt.SuperDict(trips=trip_info,
-                        stop_times=stop_times_info_1,
-                        stop_times_2=stop_times_2_info,
+                        stop_times=stop_times_info_1,  # for route, and sequence: time and stop
+                        stop_times_2=stop_times_2_info,  # indexed table
                         routes=route_info,
                         stops=stops_info)
 
@@ -190,7 +192,6 @@ def graph_from_node(current, max_hour):
     return arcs
 
 def get_lats_longs_from_node(directory, trip, sequence, min_hour, max_hour):
-    sequence = int(sequence)
     tables = get_tables(directory)
     info = get_info_object(tables, min_hour=min_hour, max_hour=max_hour)
     current = Node(trip, sequence, info)
@@ -207,10 +208,12 @@ def get_lats_longs(arcs, info):
     get_lon = lambda v: float(info['stops'][v.stop]['stop_lon'])
     get_route = lambda v: info['routes'][v.route]['route_short_name']
     get_time = lambda v: v.time.strftime('%H:%M')
+    get_name = lambda v: info['stops'][v.stop]['stop_name']
     get_all = lambda v: dict(lat=get_lat(v),
                              long=get_lon(v),
                              time=get_time(v),
-                             route=get_route(v))
+                             route=get_route(v),
+                             name=get_name(v))
     return pt.TupList(nodes).to_dict(None).vapply(get_all).to_df(orient='index').reset_index(drop=True)
 
 
@@ -243,36 +246,3 @@ if __name__ == '__main__':
     # trip: viaje concreto dentro de una ruta
     # service: ligado a un calendario.
 
-    # all_passing = generate_timetable()
-    # write_table(all_passing, 'timetables.txt')
-    #
-    # _testnp = np.genfromtxt('timetables.txt', delimiter=',', dtype=np.dtype('U19'))
-    # This way we get a multidimensional numpy
-    # _testnp = np.array(all_passing, dtype=np.dtype('U19'))
-
-    # This way we get an array of different types:
-    # _testnp = np.array(_test, dtype=np.dtype('U16, U8, U19'))
-
-    # get all rows where second column (line) is equal to 'L1':
-    # _testnp[_testnp[:,1]=='L1']
-
-    # get all rows of
-    # '2019-10-14 06:09:00' and '2019-10-15 06:09:00'
-    # _filter = (_testnp[:,1]=='L1') &  (_testnp[:,2] <= '2019-10-16 03:00:00') & (_testnp[:,2] >= '2019-10-15 03:00:00')
-    # data = _testnp[_filter]
-    # data_sorted = np.sort(np.unique(data, axis=0), axis=0)
-
-    # we read lines
-    # lines = read_json('data_tisseo/lines.json')
-    # we read stops
-    # def _temp():
-    #     from importlib import reload
-    #     reload(ti)
-    # tisseo = ti.Tisseo()
-    # stop_areas = tisseo.get_stop_areas(cache=True,
-    #                                    displayLines=1,
-    #                                    displayCoordXY=1,
-    #                                    timeFrame=7)
-    # stop_areas = {a['id']: a for a in stop_areas['stopAreas']['stopArea']}
-    # stop_areas = pt.SuperDict.from_dict(stop_areas)
-    # stop_areas.values_tl()[0]
