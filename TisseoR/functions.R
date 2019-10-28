@@ -3,18 +3,19 @@ library(reticulate)
 
 get_python_module <- function(rel_path, name){
     # this will work as a proxy for shinyapps. maybe.
-    if(TRUE) {
-        py_install(c('pandas', 'pytups'))
-    } else {
-        paths <- 'c:/Anaconda3/Scripts/conda.exe'
-        use_condaenv('transport_api', conda=paths, required=TRUE)
-    }
+    # py_install(c('pandas', 'pytups'), python_version=3)
+    # if(TRUE) {
+    #     py_install(c('pandas', 'pytups'), python_version=3, condaenv='transport_api')
+    # } else {
+    paths <- 'c:/Anaconda3/Scripts/conda.exe'
+    use_condaenv('transport_api', conda=paths, required=TRUE)
+    # }
     
     # use_virtualenv('~/Documents/projects/OPTIMA/python/venv/', required = TRUE)
     py_discover_config()
     # sysp = import('sys')
     # opt_path = ''
-    # python_path <- '%s/' %>% sprintf(getwd(), opt_path)
+    # python_path <- '%s/' %>% sp8rintf(getwd(), opt_path)
     # print(python_path)
     # sysp$path <- c(python_path, sysp$path)
     # scripts_path = paste0(python_path, rel_path)
@@ -25,7 +26,7 @@ get_python_module <- function(rel_path, name){
 
 get_tisseo_nodes <- function() get_python_module('', 'analize_tisseo')
 
-get_graph_from_stop <- function(min_hour, max_hour, trip_id, stop_seq, tisseo, tables, info){
+get_graph_from_stop <- function(min_hour, max_hour, trip_id, stop_seq, tisseo, tables, info, ...){
     
     # browser()
     default_stop <- tisseo$Node(trip_id=trip_id,stop_sequence=stop_seq, info=info)

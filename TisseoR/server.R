@@ -13,6 +13,7 @@ def_data <-
         ,max_hour = '09:00:00'
         ,trip_id = '4503603929131499'
         ,stop_seq = '8'
+        ,day_of_week = 'monday'
     )
 
 directory <- 'data_tisseo\\tisseo_gtfs\\'
@@ -21,7 +22,8 @@ def_data$tisseo <- get_tisseo_nodes()
 def_data$tables <- def_data$tisseo$get_tables(directory)
 def_data$info <- def_data$tisseo$get_info_object(def_data$tables, 
                                                  min_hour=def_data$min_hour, 
-                                                 max_hour=def_data$max_hour)
+                                                 max_hour=def_data$max_hour,
+                                                 day_of_week = def_data$day_of_week)
 
 result <- do.call(get_graph_from_stop, args=def_data)
 # this works.

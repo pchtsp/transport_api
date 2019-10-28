@@ -1,5 +1,5 @@
 import os
-import json
+import ujson as json
 import pytups as pt
 import pandas as pd
 import datetime
@@ -115,11 +115,11 @@ def get_tables(directory = 'data_tisseo/tisseo_gtfs/'):
     names = pt.TupList(['stop_times', 'trips', 'routes', 'stops', 'calendar'])
     return names.to_dict(None).vapply(read_table, directory=directory)
 
-def get_info_object(tables, day_ok_week='monday', min_hour='11:00:00', max_hour='12:00:00'):
+def get_info_object(tables, day_of_week='monday', min_hour='11:00:00', max_hour='12:00:00'):
 
     trips = tables['trips']
     calendar = tables['calendar']
-    calendar_r = calendar[calendar[day_ok_week]=='1']
+    calendar_r = calendar[calendar[day_of_week] == '1']
     trips = trips.merge(calendar_r, on='service_id')
     trip_info = trips.\
         set_index('trip_id')[['route_id', 'direction_id']].\
