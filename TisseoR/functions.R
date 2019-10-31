@@ -4,22 +4,13 @@ library(reticulate)
 get_python_module <- function(rel_path, name){
     # this will work as a proxy for shinyapps. maybe.
     # py_install(c('pandas', 'pytups'), python_version=3)
-    # if(TRUE) {
-    #     py_install(c('pandas', 'pytups'), python_version=3, condaenv='transport_api')
-    # } else {
-    paths <- 'c:/Anaconda3/Scripts/conda.exe'
-    use_condaenv('transport_api', conda=paths, required=TRUE)
-    # }
-    
-    # use_virtualenv('~/Documents/projects/OPTIMA/python/venv/', required = TRUE)
+    if(.Platform$OS.type == "unix") {
+        use_virtualenv('transport_api', required = TRUE)
+    } else {
+        paths <- 'c:/Anaconda3/Scripts/conda.exe'
+        use_condaenv('transport_api', conda=paths, required=TRUE)
+    }
     py_discover_config()
-    # sysp = import('sys')
-    # opt_path = ''
-    # python_path <- '%s/' %>% sp8rintf(getwd(), opt_path)
-    # print(python_path)
-    # sysp$path <- c(python_path, sysp$path)
-    # scripts_path = paste0(python_path, rel_path)
-    # script <- import_from_path(name, path=scripts_path)
     script <- import_from_path(name, path=getwd())
     script
 }
