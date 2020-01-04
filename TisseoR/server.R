@@ -7,29 +7,31 @@ library(stringr)
 
 source('functions.R')
 
-def_data <- 
-    list(
-        min_hour = '08:00:00'
-        ,max_hour = '09:00:00'
-        ,trip_id = '4503603929131499'
-        ,stop_seq = '8'
-        ,day_of_week = 'monday'
-    )
+def_data <- default_data()
 
 directory <- 'data_tisseo\\tisseo_gtfs\\'
 # browser()
 def_data$tisseo <- get_tisseo_nodes()
-def_data$tables <- def_data$tisseo$get_tables(directory)
-def_data$info <- def_data$tisseo$get_info_object(def_data$tables, 
-                                                 min_hour=def_data$min_hour, 
-                                                 max_hour=def_data$max_hour,
-                                                 day_of_week = def_data$day_of_week)
 
+def_data$tables <- def_data$tisseo$get_tables(directory)
+
+def_data$info <- get_info(def_data)
 result <- do.call(get_graph_from_stop, args=def_data)
-# this works.
-# result <- iterate(arcs[default_stop]$keys())
+
 function(input, output, clientData, session) {
     
+    # get all inputs into data object
+    observeEvent(input$rerun, {
+        # browser()
+        def_data$day_of_week <<- input$day_of_week
+        def_data$min_hour <<- input$min_hour %>% strftime("%T")
+        def_data$max_hour <<- input$max_hour %>% strftime("%T")
+        def_data$max_dist_km_walk <<- input$max_dist_km_walk
+        def_data$info <<- get_info(def_data)
+        update_map(def_data)
+    })
+    
+    # create graph object
     output$map <- renderLeaflet({
         leaflet(result$table) %>% 
             addProviderTiles("CartoDB.DarkMatterNoLabels") %>% 
@@ -39,6 +41,7 @@ function(input, output, clientData, session) {
                          color = c("#ffff00", "#ff4f00", "#3fff00", "#ffaa00", "#A4ff00"))
     })
     
+    # get a click
     observe({
         temp <- input$map_click
         if (temp %>% is.null){
@@ -64,6 +67,7 @@ function(input, output, clientData, session) {
         leafletProxy("map", data = stops) %>%
             clearMarkers() %>% 
             addMarkers(lat= ~lat, lng= ~long, layerId = ~stop_id)
+        # print(def_data$day_of_week)
         
     })
     
@@ -74,7 +78,6 @@ function(input, output, clientData, session) {
             return()
         }
         # browser()
-        # date_min_hour <- sprintf('1900-01-01 %s', def_data$min_hour)
         first_node <- 
             def_data$info$stop_times_2 %>% 
             filter(stop_id_backup==temp$id) %>% 
@@ -84,17 +87,12 @@ function(input, output, clientData, session) {
         if (nrow(first_node) == 0){
             return()
         }
-        def_data$trip_id <- first_node$trip_id
-        def_data$stop_seq <- first_node$stop_sequence
+        def_data$trip_id <<- first_node$trip_id
+        def_data$stop_seq <<- first_node$stop_sequence
         
-        result <- do.call(get_graph_from_stop, args=def_data)
-        
-        leafletProxy("map", data = result$table) %>%
-            clearShapes() %>%
-            addCircles(lat= ~lat, lng= ~long, radius=~radius,
-                       fillOpacity = 0.05, weight=1) %>%
-            addPolylines(data=result$lines, lng=~long, lat=~lat, 
-                         color = c("#ffff00", "#ff4f00", "#3fff00", "#ffaa00", "#A4ff00"))
+        # print(def_data$day_of_week)
+        update_map(def_data)
+
     })
     
 }
